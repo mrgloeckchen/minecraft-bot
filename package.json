@@ -1,0 +1,15 @@
+{
+  "name": "minecraft-bot",
+  "version": "1.0.0",
+  "description": "Bedrock bot Marvin",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": "./src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "bedrock-protocol": "^3.24.1",
+    "eventemitter3": "^5.0.1"
+  }
+}
