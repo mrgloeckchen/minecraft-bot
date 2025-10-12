@@ -1,0 +1,11 @@
+[
+  {
+    "name": "lagerfeuer",
+    "blocks": [
+      { "position": { "x": 0, "y": 0, "z": 0 }, "face": 1, "hotbarSlot": 0 },
+      { "position": { "x": 1, "y": 0, "z": 0 }, "face": 1, "hotbarSlot": 0 },
+      { "position": { "x": 0, "y": 0, "z": 1 }, "face": 1, "hotbarSlot": 0 },
+      { "position": { "x": 1, "y": 0, "z": 1 }, "face": 1, "hotbarSlot": 0 }
+    ]
+  }
+]
