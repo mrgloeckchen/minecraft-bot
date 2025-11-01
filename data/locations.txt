@@ -1,0 +1,3 @@
+# Name=X1,Z1;X2,Z2
+Deniz-Insel=-120,80;-60,140
+Farm-Nord=200,-50;260,10

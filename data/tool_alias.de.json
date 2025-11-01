@@ -1,0 +1,11 @@
+{
+  "spitzhacke": ["pickaxe", "spitz", "pick"],
+  "axt": ["axe", "holzfäller"],
+  "schaufel": ["shovel", "spaten"],
+  "hacke": ["hoe", "feldhacke"],
+  "schwert": ["sword", "klinge"],
+  "schild": ["shield"],
+  "schere": ["shears"],
+  "bogen": ["bow", "armbrust"],
+  "dreizack": ["trident", "dreizack"]
+}

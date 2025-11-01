@@ -1,0 +1,7 @@
+{
+  "minecraft:stone": "wood",
+  "minecraft:iron_ore": "stone",
+  "minecraft:diamond_ore": "iron",
+  "minecraft:ancient_debris": "diamond",
+  "minecraft:obsidian": "diamond"
+}

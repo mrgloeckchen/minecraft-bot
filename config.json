@@ -1,0 +1,21 @@
+{
+  "host": "127.0.0.1",
+  "port": 19132,
+  "username": "gloeckchende",
+  "edition": "win10",
+  "auth": "microsoft",
+  "autoCraftTools": true,
+  "lowDurabilityThreshold": 15,
+  "preferSwordInBedrock": true,
+  "useShield": true,
+  "defenseZonesEnabled": true,
+  "zoneCheckInterval": 2,
+  "followRange": 2,
+  "mobDefenseRadius": 15,
+  "sleepSearchRadius": 32,
+  "chunkRadius": 6,
+  "walkSpeed": 0.35,
+  "maxVerticalStep": 0.5,
+  "navigationTolerance": 1.25,
+  "dataDirectory": "data"
+}
