@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node bot.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node --test"
   },
   "keywords": [
     "minecraft",

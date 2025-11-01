@@ -1,10 +1,17 @@
-import chalk from 'chalk';
+let chalk;
+try {
+  ({ default: chalk } = await import('chalk'));
+} catch {
+  chalk = null;
+}
+
+const identity = (value) => value;
 
 const levels = {
-  info: chalk.cyan,
-  warn: chalk.yellow,
-  error: chalk.red,
-  debug: chalk.gray
+  info: chalk?.cyan ?? identity,
+  warn: chalk?.yellow ?? identity,
+  error: chalk?.red ?? identity,
+  debug: chalk?.gray ?? identity
 };
 
 export function log(level, message, ...args) {

@@ -2,6 +2,17 @@ import { logger } from './logger.js';
 
 const TOOL_MATERIAL_ORDER = ['wood', 'stone', 'iron', 'diamond', 'netherite'];
 
+function matchesCandidate(itemId = '', candidate = '') {
+  if (!itemId || !candidate) return false;
+  if (itemId === candidate) return true;
+  const [, candidateName = candidate] = candidate.split(':');
+  if (!candidateName) return false;
+  if (itemId.endsWith(`_${candidateName}`)) return true;
+  if (itemId.endsWith(candidateName)) return true;
+  if (itemId.includes(`_${candidateName}_`)) return true;
+  return false;
+}
+
 export class InventoryManager {
   constructor() {
     this.slots = new Map();
@@ -41,15 +52,16 @@ export class InventoryManager {
     let best = null;
     let bestScore = -Infinity;
 
-    for (const id of candidates) {
-      const found = this.find((item) => item?.id === id);
-      if (!found) continue;
-      const material = this.getMaterialTier(found.item);
-      const durability = found.item?.durability ?? 9999;
-      const score = TOOL_MATERIAL_ORDER.indexOf(material) * 100 - (100 - durability);
+    for (const [slot, item] of this.slots) {
+      if (!item?.id) continue;
+      if (!candidates.some((candidate) => matchesCandidate(item.id, candidate))) continue;
+      const material = this.getMaterialTier(item);
+      const durability = item?.durability ?? 100;
+      const tierIndex = TOOL_MATERIAL_ORDER.indexOf(material);
+      const score = tierIndex * 100 - (100 - durability);
       if (score > bestScore) {
         bestScore = score;
-        best = { ...found, material, durability };
+        best = { slot, item, material, durability };
       }
     }
     return best;
