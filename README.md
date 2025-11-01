@@ -232,3 +232,23 @@ Er erkennt auch Varianten wie „kämpfe“, „geh schlafen“, „folg mir bit
 * 🌾 Farmzyklen / Redstone-Schaltungen auslösen
 * 🔗 Integration mit Jarvis-Dashboard (Statusanzeige, Steuerung per Sprache)
 
+---
+
+## ▶️ 12. Installation & Start
+
+1. Node.js (>= 18) installieren.
+2. Repository clonen und Abhängigkeiten installieren:
+
+   ```bash
+   npm install
+   ```
+
+3. Zugangsdaten in `config.json` eintragen (Host, Port, Auth-Methode etc.).
+4. Bot starten:
+
+   ```bash
+   npm start
+   ```
+
+Beim ersten Start legt der Bot automatisch alle benötigten Dateien im Ordner `data/` an und lädt die Zonen- sowie Whitelist-Konfiguration.
+

@@ -1,0 +1,17 @@
+{
+  "eichenbrett": "minecraft:planks",
+  "eichenbretter": "minecraft:planks",
+  "stein": "minecraft:stone",
+  "kohle": "minecraft:coal",
+  "eisenbarren": "minecraft:iron_ingot",
+  "diamant": "minecraft:diamond",
+  "holz": "minecraft:log",
+  "axt": "minecraft:iron_axe",
+  "schwert": "minecraft:iron_sword",
+  "spitzhacke": "minecraft:iron_pickaxe",
+  "schaufel": "minecraft:iron_shovel",
+  "hacke": "minecraft:iron_hoe",
+  "schere": "minecraft:shears",
+  "schild": "minecraft:shield",
+  "bogen": "minecraft:bow"
+}

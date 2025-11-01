@@ -1,0 +1,6 @@
+{
+  "preferredMelee": ["minecraft:netherite_sword", "minecraft:diamond_sword", "minecraft:iron_sword", "minecraft:stone_sword"],
+  "preferredRanged": ["minecraft:bow", "minecraft:crossbow", "minecraft:trident"],
+  "shield": "minecraft:shield",
+  "projectileBlacklist": ["minecraft:snowball"]
+}

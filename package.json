@@ -1,0 +1,29 @@
+{
+  "name": "gloeckchende",
+  "version": "1.0.0",
+  "description": "Ein intelligenter Minecraft-Bedrock-Bot mit deutscher Chatsteuerung.",
+  "main": "bot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node bot.js",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "minecraft",
+    "bedrock",
+    "bot",
+    "prismarine"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bedrock-protocol": "^4.6.0",
+    "prismarine-item": "^1.14.0",
+    "prismarine-registry": "^1.8.1",
+    "prismarine-entity": "^2.3.0",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  }
+}
