@@ -9,7 +9,7 @@ export class MovementController {
     this.position = { x: 0, y: 0, z: 0 };
     this.yaw = 0;
     this.pitch = 0;
-    this.sequence = 0n;
+    this.sequence = 0;
     this.walkSpeed = bot.config.walkSpeed ?? DEFAULT_WALK_SPEED;
     this.maxVerticalStep = bot.config.maxVerticalStep ?? DEFAULT_ASCEND_STEP;
   }
@@ -21,14 +21,8 @@ export class MovementController {
       z: packet.player_position.z
     };
 
-    let runtimeId = null;
-    try {
-      runtimeId = BigInt(
-        packet.runtime_entity_id ?? packet.runtime_id ?? packet.player_id ?? 0
-      );
-    } catch {
-      runtimeId = null;
-    }
+    const runtimeId =
+      typeof this.bot.selfRuntimeId === 'number' ? this.bot.selfRuntimeId : null;
 
     try {
       this.bot.client.queue('client_cache_status', { enabled: false });
@@ -40,6 +34,8 @@ export class MovementController {
           runtime_entity_id: runtimeId,
           entity_id: runtimeId
         });
+      } else {
+        logger.warn('Initialisierung ohne gültige Runtime-ID.');
       }
       logger.info('Lokaler Spieler initialisiert.');
     } catch (err) {
@@ -81,7 +77,8 @@ export class MovementController {
     this.position = { ...position };
     this.yaw = yaw;
 
-    const runtimeId = this.bot.selfRuntimeId;
+    const runtimeId =
+      typeof this.bot.selfRuntimeId === 'number' ? this.bot.selfRuntimeId : null;
     if (runtimeId == null) {
       logger.warn('Bewegung übersprungen: Runtime-ID unbekannt.');
       return;
@@ -96,7 +93,7 @@ export class MovementController {
         head_yaw: yaw,
         mode: 0,
         on_ground: true,
-        riding_eid: 0n,
+        riding_eid: 0,
         tick: ++this.sequence,
         teleportation_cause: 0,
         teleportation_source_entity_type: 0
