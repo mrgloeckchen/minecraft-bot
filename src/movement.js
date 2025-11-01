@@ -9,7 +9,7 @@ export class MovementController {
     this.position = { x: 0, y: 0, z: 0 };
     this.yaw = 0;
     this.pitch = 0;
-    this.sequence = 0;
+    this.sequence = 0n;
     this.walkSpeed = bot.config.walkSpeed ?? DEFAULT_WALK_SPEED;
     this.maxVerticalStep = bot.config.maxVerticalStep ?? DEFAULT_ASCEND_STEP;
   }
@@ -21,18 +21,17 @@ export class MovementController {
       z: packet.player_position.z
     };
 
-    const runtimeId =
-      typeof this.bot.selfRuntimeId === 'number' ? this.bot.selfRuntimeId : null;
+    const runtimeIdBigInt = this.bot.selfRuntimeIdBigInt;
 
     try {
       this.bot.client.queue('client_cache_status', { enabled: false });
       this.bot.client.queue('request_chunk_radius', {
         chunk_radius: this.bot.config.chunkRadius ?? 6
       });
-      if (runtimeId != null) {
+      if (runtimeIdBigInt != null) {
         this.bot.client.queue('set_local_player_as_initialized', {
-          runtime_entity_id: runtimeId,
-          entity_id: runtimeId
+          runtime_entity_id: runtimeIdBigInt,
+          entity_id: runtimeIdBigInt
         });
       } else {
         logger.warn('Initialisierung ohne gültige Runtime-ID.');
@@ -77,24 +76,24 @@ export class MovementController {
     this.position = { ...position };
     this.yaw = yaw;
 
-    const runtimeId =
-      typeof this.bot.selfRuntimeId === 'number' ? this.bot.selfRuntimeId : null;
-    if (runtimeId == null) {
+    const runtimeIdBigInt = this.bot.selfRuntimeIdBigInt;
+    if (runtimeIdBigInt == null) {
       logger.warn('Bewegung übersprungen: Runtime-ID unbekannt.');
       return;
     }
 
     try {
+      this.sequence += 1n;
       client.queue('move_player', {
-        runtime_id: runtimeId,
+        runtime_id: runtimeIdBigInt,
         position,
         pitch: this.pitch,
         yaw,
         head_yaw: yaw,
         mode: 0,
         on_ground: true,
-        riding_eid: 0,
-        tick: ++this.sequence,
+        riding_eid: 0n,
+        tick: this.sequence,
         teleportation_cause: 0,
         teleportation_source_entity_type: 0
       });
