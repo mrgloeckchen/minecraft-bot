@@ -175,7 +175,11 @@ project/
   "defenseZonesEnabled": true,
   "zoneCheckInterval": 2,
   "followRange": 2,
-  "mobDefenseRadius": 15
+  "mobDefenseRadius": 15,
+  "chunkRadius": 6,
+  "walkSpeed": 0.35,
+  "maxVerticalStep": 0.5,
+  "navigationTolerance": 1.25
 }
 ```
 

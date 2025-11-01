@@ -22,6 +22,11 @@ export class TaskManager {
     this.activeTask = null;
   }
 
+  completeTask(type, reason = 'abgeschlossen') {
+    if (this.activeTask?.type !== type) return;
+    this.clearTask(reason);
+  }
+
   tick() {
     if (!this.activeTask) return;
     switch (this.activeTask.type) {

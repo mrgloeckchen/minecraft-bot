@@ -13,6 +13,7 @@ import { CombatManager } from './src/combat.js';
 import { TaskManager } from './src/taskManager.js';
 import { ZoneManager } from './src/zones.js';
 import { LocationManager } from './src/locations.js';
+import { MovementController } from './src/movement.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +32,7 @@ export class GloeckchendeBot extends EventEmitter {
     this.store = new DataStore(config.dataDirectory || 'data');
     this.inventory = new InventoryManager();
     this.toolManager = new ToolManager(this.inventory, config);
+    this.movement = new MovementController(this);
     this.navigation = new NavigationManager(this);
     this.combat = new CombatManager(this, this.toolManager);
     this.tasks = new TaskManager(this);
@@ -61,6 +63,7 @@ export class GloeckchendeBot extends EventEmitter {
         z: packet.player_position.z,
         dimension: 'overworld'
       };
+      this.movement.initializeFromStartGame(packet);
       logger.info('Startpaket empfangen.');
     });
 
@@ -86,9 +89,21 @@ export class GloeckchendeBot extends EventEmitter {
 
       if (packet.runtime_id === this.selfRuntimeId || packet.runtime_id === undefined) {
         this.position = position;
+        this.movement.updateServerPosition(position);
         this.emit('position', this.position);
       } else {
         this.updateTrackedPlayer(packet.runtime_id, position);
+      }
+    });
+
+    this.client.on('tick_sync', (packet) => {
+      try {
+        this.client.queue('tick_sync', {
+          request_time: packet.response_time,
+          response_time: packet.response_time
+        });
+      } catch (err) {
+        logger.warn(`Tick-Sync fehlgeschlagen: ${err.message}`);
       }
     });
 
@@ -172,6 +187,7 @@ export class GloeckchendeBot extends EventEmitter {
       case 'navigate': {
         const location = this.locations.find(command.target);
         if (location) {
+          this.navigation.clearFollow();
           this.navigation.navigateTo(location);
           this.tasks.setTask({ type: 'navigate', target: location, requestedBy: sender });
           this.sendPrivateMessage(sender, `Unterwegs nach ${location.name}.`);
@@ -242,6 +258,15 @@ export class GloeckchendeBot extends EventEmitter {
     if (this.config.defenseZonesEnabled) {
       this.checkZones();
     }
+  }
+
+  getTrackedPlayer(name) {
+    for (const [, player] of this.players) {
+      if (player?.name?.toLowerCase() === name.toLowerCase()) {
+        return player;
+      }
+    }
+    return null;
   }
 
   updateTrackedPlayer(runtimeId, position) {
