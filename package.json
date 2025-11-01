@@ -1,0 +1,13 @@
+{
+  "name": "minecraft-bot",
+  "version": "1.0.0",
+  "description": "Bedrock bot with BigInt-safe movement packets",
+  "main": "bot.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "bedrock-protocol": "^3.30.0"
+  }
+}
