@@ -56,7 +56,13 @@ export class GloeckchendeBot extends EventEmitter {
 
   bindEvents() {
     this.client.on('start_game', (packet) => {
-      this.selfRuntimeId = packet.runtime_entity_id;
+      const runtimeId =
+        packet.runtime_entity_id ?? packet.runtime_id ?? packet.player_id ?? 0;
+      try {
+        this.selfRuntimeId = BigInt(runtimeId);
+      } catch {
+        this.selfRuntimeId = null;
+      }
       this.position = {
         x: packet.player_position.x,
         y: packet.player_position.y,
@@ -73,10 +79,11 @@ export class GloeckchendeBot extends EventEmitter {
 
     this.client.on('text', (packet) => {
       if (packet.type !== 'whisper') return;
-      if (packet.name === this.username) return;
+      const sender = packet.source_name ?? packet.sender ?? packet.name ?? 'Unbekannt';
+      if (sender === this.username) return;
       const command = parseCommand(packet.message);
-      logger.info(`Befehl von ${packet.name}: ${packet.message} → ${command.type}`);
-      this.handleCommand(packet.name, command);
+      logger.info(`Befehl von ${sender}: ${packet.message} → ${command.type}`);
+      this.handleCommand(sender, command);
     });
 
     this.client.on('move_player', (packet) => {

@@ -21,15 +21,26 @@ export class MovementController {
       z: packet.player_position.z
     };
 
+    let runtimeId = null;
+    try {
+      runtimeId = BigInt(
+        packet.runtime_entity_id ?? packet.runtime_id ?? packet.player_id ?? 0
+      );
+    } catch {
+      runtimeId = null;
+    }
+
     try {
       this.bot.client.queue('client_cache_status', { enabled: false });
       this.bot.client.queue('request_chunk_radius', {
         chunk_radius: this.bot.config.chunkRadius ?? 6
       });
-      this.bot.client.queue('set_local_player_as_initialized', {
-        runtime_entity_id: packet.runtime_entity_id,
-        entity_id: packet.runtime_entity_id
-      });
+      if (runtimeId != null) {
+        this.bot.client.queue('set_local_player_as_initialized', {
+          runtime_entity_id: runtimeId,
+          entity_id: runtimeId
+        });
+      }
       logger.info('Lokaler Spieler initialisiert.');
     } catch (err) {
       logger.error(`Initialisierung fehlgeschlagen: ${err.message}`);
@@ -70,9 +81,15 @@ export class MovementController {
     this.position = { ...position };
     this.yaw = yaw;
 
+    const runtimeId = this.bot.selfRuntimeId;
+    if (runtimeId == null) {
+      logger.warn('Bewegung übersprungen: Runtime-ID unbekannt.');
+      return;
+    }
+
     try {
       client.queue('move_player', {
-        runtime_id: this.bot.selfRuntimeId,
+        runtime_id: runtimeId,
         position,
         pitch: this.pitch,
         yaw,
