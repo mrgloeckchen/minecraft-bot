@@ -24,6 +24,60 @@ function loadConfig() {
   return JSON.parse(raw);
 }
 
+function normalizeRuntimeId(value) {
+  if (value == null) return null;
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? Math.trunc(value) : null;
+  }
+
+  if (typeof value === 'bigint') {
+    const asNumber = Number(value);
+    return Number.isSafeInteger(asNumber) ? asNumber : null;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed === '') return null;
+
+    const numeric = Number(trimmed);
+    if (Number.isSafeInteger(numeric)) return numeric;
+
+    try {
+      const bigintValue = BigInt(trimmed);
+      const asNumber = Number(bigintValue);
+      return Number.isSafeInteger(asNumber) ? asNumber : null;
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+function runtimeIdToKey(value) {
+  if (value == null) return null;
+
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return null;
+    return Math.trunc(value).toString();
+  }
+
+  if (typeof value === 'string') {
+    return value.trim() === '' ? null : value;
+  }
+
+  try {
+    return value.toString();
+  } catch {
+    return null;
+  }
+}
+
 export class GloeckchendeBot extends EventEmitter {
   constructor(config) {
     super();
@@ -42,7 +96,10 @@ export class GloeckchendeBot extends EventEmitter {
     this.tickInterval = null;
     this.username = config.username;
     this.selfRuntimeId = null;
+    this.selfRuntimeIdKey = null;
     this.players = new Map();
+    this.health = null;
+    this.maxHealth = null;
   }
 
   connect() {
@@ -56,12 +113,12 @@ export class GloeckchendeBot extends EventEmitter {
 
   bindEvents() {
     this.client.on('start_game', (packet) => {
-      const runtimeId =
-        packet.runtime_entity_id ?? packet.runtime_id ?? packet.player_id ?? 0;
-      try {
-        this.selfRuntimeId = BigInt(runtimeId);
-      } catch {
-        this.selfRuntimeId = null;
+      const rawRuntimeId =
+        packet.runtime_entity_id ?? packet.runtime_id ?? packet.player_id ?? null;
+      this.selfRuntimeId = normalizeRuntimeId(rawRuntimeId);
+      this.selfRuntimeIdKey = runtimeIdToKey(rawRuntimeId);
+      if (this.selfRuntimeId == null) {
+        logger.warn('Konnte keine gültige Runtime-ID bestimmen.');
       }
       this.position = {
         x: packet.player_position.x,
@@ -94,12 +151,17 @@ export class GloeckchendeBot extends EventEmitter {
         dimension: this.position.dimension
       };
 
-      if (packet.runtime_id === this.selfRuntimeId || packet.runtime_id === undefined) {
+      const runtimeIdKey = runtimeIdToKey(packet.runtime_id);
+      const isSelfPacket =
+        (runtimeIdKey && this.selfRuntimeIdKey && runtimeIdKey === this.selfRuntimeIdKey) ||
+        packet.runtime_id === undefined;
+
+      if (isSelfPacket) {
         this.position = position;
         this.movement.updateServerPosition(position);
         this.emit('position', this.position);
-      } else {
-        this.updateTrackedPlayer(packet.runtime_id, position);
+      } else if (runtimeIdKey) {
+        this.updateTrackedPlayer(runtimeIdKey, position);
       }
     });
 
@@ -114,8 +176,38 @@ export class GloeckchendeBot extends EventEmitter {
       }
     });
 
+    this.client.on('update_attributes', (packet) => {
+      const runtimeIdKey = runtimeIdToKey(packet.runtime_entity_id);
+      if (!runtimeIdKey || runtimeIdKey !== this.selfRuntimeIdKey) return;
+
+      const attributes = packet.attributes || [];
+      const healthAttr = attributes.find((attr) => attr.name === 'minecraft:health');
+      if (!healthAttr) return;
+
+      const current =
+        healthAttr.current ?? healthAttr.value ?? healthAttr.default ?? this.health;
+      const maximum = healthAttr.max ?? healthAttr.maximum ?? this.maxHealth;
+
+      if (maximum != null) {
+        this.maxHealth = maximum;
+      }
+
+      if (current != null) {
+        if (this.health != null && current < this.health) {
+          const hpLost = (this.health - current).toFixed(1);
+          logger.warn(`Schaden erlitten: -${hpLost} HP (jetzt ${current}/${this.maxHealth ?? '?'})`);
+        }
+        this.health = current;
+      }
+    });
+
     this.client.on('add_player', (packet) => {
-      this.players.set(packet.runtime_id, {
+      const runtimeIdKey = runtimeIdToKey(
+        packet.runtime_id ?? packet.runtime_entity_id ?? packet.entity_id
+      );
+      if (!runtimeIdKey) return;
+
+      this.players.set(runtimeIdKey, {
         name: packet.username,
         uuid: packet.uuid,
         position: packet.position
@@ -125,11 +217,13 @@ export class GloeckchendeBot extends EventEmitter {
 
     this.client.on('remove_player', (packet) => {
       for (const runtimeId of packet.runtime_entity_ids || []) {
-        const player = this.players.get(runtimeId);
+        const runtimeIdKey = runtimeIdToKey(runtimeId);
+        if (!runtimeIdKey) continue;
+        const player = this.players.get(runtimeIdKey);
         if (player) {
           logger.debug(`Spieler ${player.name} entfernt.`);
         }
-        this.players.delete(runtimeId);
+        this.players.delete(runtimeIdKey);
       }
     });
 
@@ -276,8 +370,9 @@ export class GloeckchendeBot extends EventEmitter {
     return null;
   }
 
-  updateTrackedPlayer(runtimeId, position) {
-    const entry = this.players.get(runtimeId);
+  updateTrackedPlayer(runtimeIdKey, position) {
+    if (!runtimeIdKey) return;
+    const entry = this.players.get(runtimeIdKey);
     if (!entry) return;
     entry.position = position;
   }

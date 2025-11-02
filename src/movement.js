@@ -9,7 +9,7 @@ export class MovementController {
     this.position = { x: 0, y: 0, z: 0 };
     this.yaw = 0;
     this.pitch = 0;
-    this.sequence = 0n;
+    this.sequence = 0;
     this.walkSpeed = bot.config.walkSpeed ?? DEFAULT_WALK_SPEED;
     this.maxVerticalStep = bot.config.maxVerticalStep ?? DEFAULT_ASCEND_STEP;
   }
@@ -21,25 +21,24 @@ export class MovementController {
       z: packet.player_position.z
     };
 
-    let runtimeId = null;
-    try {
-      runtimeId = BigInt(
-        packet.runtime_entity_id ?? packet.runtime_id ?? packet.player_id ?? 0
-      );
-    } catch {
-      runtimeId = null;
-    }
-
     try {
       this.bot.client.queue('client_cache_status', { enabled: false });
       this.bot.client.queue('request_chunk_radius', {
         chunk_radius: this.bot.config.chunkRadius ?? 6
       });
-      if (runtimeId != null) {
+      try {
+        this.bot.client.queue('client_to_server_handshake', {});
+      } catch (err) {
+        logger.warn(`Handshake konnte nicht gesendet werden: ${err.message}`);
+      }
+      const runtimeIdForInit = this.bot.selfRuntimeId;
+      if (runtimeIdForInit != null) {
         this.bot.client.queue('set_local_player_as_initialized', {
-          runtime_entity_id: runtimeId,
-          entity_id: runtimeId
+          runtime_entity_id: runtimeIdForInit,
+          entity_id: runtimeIdForInit
         });
+      } else {
+        logger.warn('Initialisierung ohne gültige Runtime-ID.');
       }
       logger.info('Lokaler Spieler initialisiert.');
     } catch (err) {
@@ -88,6 +87,7 @@ export class MovementController {
     }
 
     try {
+      this.sequence += 1;
       client.queue('move_player', {
         runtime_id: runtimeId,
         position,
@@ -96,8 +96,8 @@ export class MovementController {
         head_yaw: yaw,
         mode: 0,
         on_ground: true,
-        riding_eid: 0n,
-        tick: ++this.sequence,
+        riding_eid: 0,
+        tick: this.sequence,
         teleportation_cause: 0,
         teleportation_source_entity_type: 0
       });
