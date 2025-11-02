@@ -21,21 +21,17 @@ export class MovementController {
       z: packet.player_position.z
     };
 
+    const runtimeIdBigInt = this.bot.selfRuntimeIdBigInt;
+
     try {
       this.bot.client.queue('client_cache_status', { enabled: false });
       this.bot.client.queue('request_chunk_radius', {
         chunk_radius: this.bot.config.chunkRadius ?? 6
       });
-      try {
-        this.bot.client.queue('client_to_server_handshake', {});
-      } catch (err) {
-        logger.warn(`Handshake konnte nicht gesendet werden: ${err.message}`);
-      }
-      const runtimeIdForInit = this.bot.selfRuntimeId;
-      if (runtimeIdForInit != null) {
+      if (runtimeIdBigInt != null) {
         this.bot.client.queue('set_local_player_as_initialized', {
-          runtime_entity_id: runtimeIdForInit,
-          entity_id: runtimeIdForInit
+          runtime_entity_id: runtimeIdBigInt,
+          entity_id: runtimeIdBigInt
         });
       } else {
         logger.warn('Initialisierung ohne gültige Runtime-ID.');
@@ -80,23 +76,23 @@ export class MovementController {
     this.position = { ...position };
     this.yaw = yaw;
 
-    const runtimeId = this.bot.selfRuntimeId;
-    if (runtimeId == null) {
+    const runtimeIdBigInt = this.bot.selfRuntimeIdBigInt;
+    if (runtimeIdBigInt == null) {
       logger.warn('Bewegung übersprungen: Runtime-ID unbekannt.');
       return;
     }
 
     try {
-      this.sequence += 1;
+      this.sequence += 1n;
       client.queue('move_player', {
-        runtime_id: runtimeId,
+        runtime_id: runtimeIdBigInt,
         position,
         pitch: this.pitch,
         yaw,
         head_yaw: yaw,
         mode: 0,
         on_ground: true,
-        riding_eid: 0,
+        riding_eid: 0n,
         tick: this.sequence,
         teleportation_cause: 0,
         teleportation_source_entity_type: 0

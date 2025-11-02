@@ -78,6 +78,39 @@ function runtimeIdToKey(value) {
   }
 }
 
+function runtimeIdToBigInt(value) {
+  if (value == null) return null;
+
+  if (typeof value === 'bigint') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return null;
+    try {
+      return BigInt(Math.trunc(value));
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed === '') return null;
+    try {
+      return BigInt(trimmed);
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    return BigInt(value);
+  } catch {
+    return null;
+  }
+}
+
 export class GloeckchendeBot extends EventEmitter {
   constructor(config) {
     super();
@@ -97,6 +130,7 @@ export class GloeckchendeBot extends EventEmitter {
     this.username = config.username;
     this.selfRuntimeId = null;
     this.selfRuntimeIdKey = null;
+    this.selfRuntimeIdBigInt = null;
     this.players = new Map();
     this.health = null;
     this.maxHealth = null;
@@ -117,6 +151,7 @@ export class GloeckchendeBot extends EventEmitter {
         packet.runtime_entity_id ?? packet.runtime_id ?? packet.player_id ?? null;
       this.selfRuntimeId = normalizeRuntimeId(rawRuntimeId);
       this.selfRuntimeIdKey = runtimeIdToKey(rawRuntimeId);
+      this.selfRuntimeIdBigInt = runtimeIdToBigInt(rawRuntimeId);
       if (this.selfRuntimeId == null) {
         logger.warn('Konnte keine gültige Runtime-ID bestimmen.');
       }
