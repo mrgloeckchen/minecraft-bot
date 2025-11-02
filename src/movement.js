@@ -9,7 +9,7 @@ export class MovementController {
     this.position = { x: 0, y: 0, z: 0 };
     this.yaw = 0;
     this.pitch = 0;
-    this.sequence = 0n;
+    this.sequence = 0;
     this.walkSpeed = bot.config.walkSpeed ?? DEFAULT_WALK_SPEED;
     this.maxVerticalStep = bot.config.maxVerticalStep ?? DEFAULT_ASCEND_STEP;
   }

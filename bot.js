@@ -132,6 +132,8 @@ export class GloeckchendeBot extends EventEmitter {
     this.selfRuntimeIdKey = null;
     this.selfRuntimeIdBigInt = null;
     this.players = new Map();
+    this.health = null;
+    this.maxHealth = null;
   }
 
   connect() {
@@ -206,6 +208,31 @@ export class GloeckchendeBot extends EventEmitter {
         });
       } catch (err) {
         logger.warn(`Tick-Sync fehlgeschlagen: ${err.message}`);
+      }
+    });
+
+    this.client.on('update_attributes', (packet) => {
+      const runtimeIdKey = runtimeIdToKey(packet.runtime_entity_id);
+      if (!runtimeIdKey || runtimeIdKey !== this.selfRuntimeIdKey) return;
+
+      const attributes = packet.attributes || [];
+      const healthAttr = attributes.find((attr) => attr.name === 'minecraft:health');
+      if (!healthAttr) return;
+
+      const current =
+        healthAttr.current ?? healthAttr.value ?? healthAttr.default ?? this.health;
+      const maximum = healthAttr.max ?? healthAttr.maximum ?? this.maxHealth;
+
+      if (maximum != null) {
+        this.maxHealth = maximum;
+      }
+
+      if (current != null) {
+        if (this.health != null && current < this.health) {
+          const hpLost = (this.health - current).toFixed(1);
+          logger.warn(`Schaden erlitten: -${hpLost} HP (jetzt ${current}/${this.maxHealth ?? '?'})`);
+        }
+        this.health = current;
       }
     });
 
